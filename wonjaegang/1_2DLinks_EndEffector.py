@@ -37,8 +37,38 @@ def problem1():
 
 
 def problem2():
-    # 역기구학 해를 먼저 구한다
-    pass
+    # 역기구학 해를 먼저 구한다 - 수치해석적 방법
+    def inverseKinematics(x, y):
+        lowestError = 100
+        lowestError_theta = [0, 0]
+        for theta1 in np.linspace(0, np.pi / 2, 1000):
+            for theta2 in np.linspace(0, np.pi, 1000):
+                l1 = 10
+                x1 = l1 * np.cos(theta1)
+                y1 = l1 * np.sin(theta1)
+
+                l2 = 5
+                x2 = x1 + l2 * np.cos(theta1 + theta2)
+                y2 = y1 + l2 * np.sin(theta1 + theta2)
+
+                error = (x - x2) ** 2 + (y - y2) ** 2
+
+                if error < lowestError:
+                    lowestError = error
+                    lowestError_theta = [theta1, theta2]
+        return lowestError_theta
+
+    # 3차 다항식으로 각속도 계획
+    def cubicInterpolation(x0, y0, x1, y1):
+        a = 0
+        b = 0
+        c = 0
+        d = 0
+        return a, b, c, d
+    targetAngle = inverseKinematics(0, 10)
+
+    # 플롯 준비
+    fig2 = plt.figure()
 
 
 if __name__ == "__main__":
