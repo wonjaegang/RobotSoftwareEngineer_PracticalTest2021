@@ -38,29 +38,7 @@ def problem1():
 
 def problem2():
     # 역기구학 해를 먼저 구한다
-
-    t = np.linspace(0, 10, 100)
-
-    theta1 = np.linspace(0, 2 * np.pi, 100)
-    theta2 = np.linspace(0, 2 * np.pi, 100)
-
-    x0 = 0
-    y0 = 0
-
-    l1 = 10
-    x1 = x0 + l1 * np.cos(theta1)
-    y1 = y0 + l1 * np.sin(theta1)
-
-    l2 = 5
-    x2 = x1 + l2 * np.cos(theta1 + theta2)
-    y2 = y1 + l2 * np.sin(theta1 + theta2)
-
-    # 플롯 준비
-    fig2 = plt.figure()
-
-    # 링크의 끝 점들을 플롯
-    plt.plot(x1, y1)
-    plt.plot(x2, y2)
+    pass
 
 
 if __name__ == "__main__":
