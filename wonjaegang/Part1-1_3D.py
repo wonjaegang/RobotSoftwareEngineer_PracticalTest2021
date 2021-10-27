@@ -66,15 +66,60 @@ def jointLocation(m1, m2, m3, m4, m5):
     return X, Y, Z
 
 
+# 시간에 따른 각도 함수 계산
+def motorAngle(w0, wf, tf, t):
+    a0 = w0
+    a1 = 0
+    a2 = 3 / (tf ** 2) * (wf - w0)
+    a3 = -2 / (tf ** 3) * (wf - w0)
+    w = a0 + a1 * t + a2 * (t ** 2) + a3 * (t ** 3)
+    return w
+
+
 if __name__ == "__main__":
-    # 매니퓰레이터 자세 출력 코드 - 3D
+    # 매니퓰레이터 자세 출력 코드 - 3D:
+    # plt 객체가 아닌 ax 객체를 사용해야한다. 때문에 여러 메소드가 달라지는 것을 조심하자!
     plt.figure(1)
     ax = plt.axes(projection='3d')
 
     plot1 = jointLocation(0, 0, 0, 0, 0)
-    ax.plot(plot1[0], plot1[1], plot1[2])
+    ax.plot(plot1[0], plot1[1], plot1[2], 'o-')
 
-    plot2 = jointLocation(np.pi / 3, np.pi / 3, np.pi / 3, np.pi / 3, np.pi / 3)
-    ax.plot(plot2[0], plot2[1], plot2[2])
+    plot2 = jointLocation(np.pi / 2, np.pi / 2, np.pi / 2, np.pi / 2, np.pi / 2)
+    ax.plot(plot2[0], plot2[1], plot2[2], 'o-')
+
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    ax.legend(["Before", "After"])
+    ax.set_title("Manipulator pose at pi/2")
+
+    # 시간에 따른 각도 함수 출력
+    plt.figure(2)
+
+    time = np.linspace(0, 10)
+    plt.plot(time, motorAngle(0, np.pi / 2, 10, time))
+
+    plt.xlabel('Time')
+    plt.ylabel('Angle')
+    plt.title("Actuator angle over time")
+
+    # 시간에 따른 매니퓰레이터 자세 출력
+    plt.figure(3)
+    ax = plt.axes(projection='3d')
+
+    time = np.linspace(0, 10)
+    for i in time:
+        plot3 = jointLocation(motorAngle(0, np.pi / 2, 10, i),
+                              motorAngle(0, np.pi / 2, 10, i),
+                              motorAngle(0, np.pi / 2, 10, i),
+                              motorAngle(0, np.pi / 2, 10, i),
+                              motorAngle(0, np.pi / 2, 10, i))
+        ax.plot(plot3[0], plot3[1], plot3[2])
+
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    ax.set_title("Manipultor pose over time")
 
     plt.show()
