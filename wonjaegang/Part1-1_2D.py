@@ -30,7 +30,7 @@ def DH_parameter(theta, d, a, alpha):
     return T_theta @ T_d @ T_a @ T_alpha
 
 
-# 기구학 계산
+# 변환 행렬 계산
 def T01(motor1):
     return DH_parameter(motor1 + np.pi / 2, 0, l1, 0)
 
@@ -43,6 +43,7 @@ def T23(motor3):
     return DH_parameter(motor3 - np.pi / 2, 0, l3, 0)
 
 
+# 변환 행렬을 통한 관절 및 공구단의 위치 계산
 def jointLocation(m1, m2, m3):
     P0 = np.array([0, 0, 0, 1])
     X = [P0[0], (T01(m1) @ P0)[0], (T01(m1) @ T12(m2) @ P0)[0], (T01(m1) @ T12(m2) @ T23(m3) @ P0)[0]]
