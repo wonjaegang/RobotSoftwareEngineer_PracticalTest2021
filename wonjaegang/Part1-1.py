@@ -74,12 +74,15 @@ if __name__ == "__main__":
     plot2 = jointLocation(np.pi / 6, np.pi / 6, np.pi / 6)
     plt.plot(plot2[0], plot2[1])
 
+    plt.title("Manipulator pose at pi/6")
     plt.legend(["Before", "After"])
 
     # 시간에 따른 각도 출력(0 ~ pi/3)
     plt.figure(2)
     time = np.linspace(0, 10)
     plt.plot(time, motorAngle(0, np.pi / 3, 10, time))
+
+    plt.title("Actuator angle over time")
 
     # 시간에 따른 매니퓰레이터 자세 출력
     plt.figure(3)
@@ -89,5 +92,7 @@ if __name__ == "__main__":
                               motorAngle(0, np.pi / 3, 10, i),
                               motorAngle(0, np.pi / 3, 10, i))
         plt.plot(plot3[0], plot3[1])
+
+    plt.title("Manipulator pose over time")
 
     plt.show()
