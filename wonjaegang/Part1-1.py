@@ -27,13 +27,17 @@ def DH_parameter(theta, d, a, alpha):
                     [0, 0, 1, 0],
                     [0, 0, 0, 1]])
     T_alpha = np.array([[1, 0, 0, 0],
-                        [0, np.cos(theta), -np.sin(theta), 0],
-                        [0, np.sin(theta), np.cos(theta), 0],
+                        [0, np.cos(alpha), -np.sin(alpha), 0],
+                        [0, np.sin(alpha), np.cos(alpha), 0],
                         [0, 0, 0, 1]])
     return T_theta @ T_d @ T_a @ T_alpha
+
+
 # PSO
 
 
 if __name__ == "__main__":
-    print(DH_parameter(np.pi, 1, 1, 0))
+    # 행렬 출력 포맷
+    np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
+    print(DH_parameter(np.pi, 2, 1, np.pi / 2))
     pass
