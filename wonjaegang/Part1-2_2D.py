@@ -70,7 +70,7 @@ def PSO(setX, setY):
         else:
             return x
 
-    population = 100
+    population = 10
     particleX = [[random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
@@ -84,18 +84,21 @@ def PSO(setX, setY):
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2)]
 
-    for _ in range(100):
+    for _ in range(3000):
         for i in range(population):
             # 속도 계산
-            w = 1
-            c1 = 1
+            w = 0.2
+            c1 = 0.5
             r1 = random.randrange(0, 1)
-            c2 = 1
+            c2 = 0.5
             r2 = random.randrange(0, 1)
             particleV[i] = [w * vi + c1 * r1 * (pb- si) + c2 * r2 * (loss(*globalBest) - si) for vi, pb, si in zip(particleV[i], particleBest[i], particleX[i])]
 
             # 위치 계산
             particleX[i] = [si + vi for si, vi in zip(particleX[i], particleV[i])]
+
+            # # 위치 제한
+            # particleX[i] = [limitSize(x) for x in particleX[i]]
 
             # 평가 및 업데이트
             if loss(*particleX[i]) < loss(*particleBest[i]):
@@ -103,7 +106,7 @@ def PSO(setX, setY):
                 if loss(*particleX[i]) < loss(*globalBest):
                     globalBest = particleX[i]
 
-    return globalBest
+    return particleX
 
 
 if __name__ == "__main__":
@@ -117,9 +120,11 @@ if __name__ == "__main__":
     plot2 = jointLocation(np.pi / 4, np.pi / 4, np.pi / 4)
     plt.plot(plot2[0], plot2[1], 'o-')
 
-    print(PSO(1, 3))
-    plot3 = jointLocation(*PSO(1, 3))
-    plt.plot(plot3[0], plot3[1], 'o-')
+    answers = PSO(1, 3)
+    print(answers)
+    for answer in answers:
+        plot3 = jointLocation(*answer)
+        plt.plot(plot3[0], plot3[1], 'o-')
 
     plt.xlabel('x')
     plt.ylabel('y')
