@@ -53,6 +53,17 @@ def jointLocation(m1, m2, m3):
     return X, Y
 
 
+# 역기구학 계산: 목표점 (x, y) = (1, 3)
+# 1) PSO 를 사용해보자
+def PSO(setX, setY):
+    d1, d2, d3 = 0, 0, 0
+    endLocation = (T01(d1) @ T12(d2) @ T23(d3) @ [0, 0, 0, 1])[:2]
+
+    loss = (setX - endLocation[0]) ** 2 + (setY - endLocation[1]) ** 2
+
+    return loss
+
+
 if __name__ == "__main__":
     # 매니퓰레이터 자세 츌력
     plt.figure(1)
@@ -69,3 +80,4 @@ if __name__ == "__main__":
     plt.title('Manipulator Pose')
 
     plt.show()
+    print(PSO(1, 3))
