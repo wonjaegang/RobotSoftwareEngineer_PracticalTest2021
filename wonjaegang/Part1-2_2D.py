@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 
 # 매니퓰레이터 기본사양 (Part1-1 2D 그림을 그대로 사용)
@@ -56,12 +57,53 @@ def jointLocation(m1, m2, m3):
 # 역기구학 계산: 목표점 (x, y) = (1, 3)
 # 1) PSO 를 사용해보자
 def PSO(setX, setY):
-    d1, d2, d3 = 0, 0, 0
-    endLocation = (T01(d1) @ T12(d2) @ T23(d3) @ [0, 0, 0, 1])[:2]
+    # PSO 초기화
+    def loss(d1, d2, d3):
+        endLocation = (T01(d1) @ T12(d2) @ T23(d3) @ [0, 0, 0, 1])[:2]
+        return (setX - endLocation[0]) ** 2 + (setY - endLocation[1]) ** 2
 
-    loss = (setX - endLocation[0]) ** 2 + (setY - endLocation[1]) ** 2
+    def limitSize(x):
+        if x > np.pi / 2:
+            return np.pi / 2
+        elif x < -np.pi / 2:
+            return -np.pi / 2
+        else:
+            return x
 
-    return loss
+    population = 100
+    particleX = [[random.uniform(-np.pi / 2, np.pi / 2),
+                 random.uniform(-np.pi / 2, np.pi / 2),
+                 random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    particleV = [[random.uniform(-np.pi / 2, np.pi / 2),
+                 random.uniform(-np.pi / 2, np.pi / 2),
+                 random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    particleBest = [[random.uniform(-np.pi / 2, np.pi / 2),
+                     random.uniform(-np.pi / 2, np.pi / 2),
+                     random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    globalBest = [random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2)]
+
+    for _ in range(100):
+        for i in range(population):
+            # 속도 계산
+            w = 1
+            c1 = 1
+            r1 = random.randrange(0, 1)
+            c2 = 1
+            r2 = random.randrange(0, 1)
+            particleV[i] = [w * vi + c1 * r1 * (pb- si) + c2 * r2 * (loss(*globalBest) - si) for vi, pb, si in zip(particleV[i], particleBest[i], particleX[i])]
+
+            # 위치 계산
+            particleX[i] = [si + vi for si, vi in zip(particleX[i], particleV[i])]
+
+            # 평가 및 업데이트
+            if loss(*particleX[i]) < loss(*particleBest[i]):
+                particleBest[i] = particleX[i]
+                if loss(*particleX[i]) < loss(*globalBest):
+                    globalBest = particleX[i]
+
+    return globalBest
 
 
 if __name__ == "__main__":
@@ -75,9 +117,12 @@ if __name__ == "__main__":
     plot2 = jointLocation(np.pi / 4, np.pi / 4, np.pi / 4)
     plt.plot(plot2[0], plot2[1], 'o-')
 
+    print(PSO(1, 3))
+    plot3 = jointLocation(*PSO(1, 3))
+    plt.plot(plot3[0], plot3[1], 'o-')
+
     plt.xlabel('x')
     plt.ylabel('y')
     plt.title('Manipulator Pose')
 
     plt.show()
-    print(PSO(1, 3))
