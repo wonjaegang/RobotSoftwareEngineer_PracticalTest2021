@@ -6,7 +6,7 @@ import random
 
 
 # 매니퓰레이터 기본사양 (Part1-1 2D 그림을 그대로 사용)
-l1, l2, l3 = 2, 1, 1
+l1, l2, l3 = 20, 10, 10
 
 
 # DH 파라미터 함수
@@ -70,7 +70,7 @@ def PSO(setX, setY):
         else:
             return x
 
-    population = 10
+    population = 100
     particleX = [[random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
@@ -84,15 +84,16 @@ def PSO(setX, setY):
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2)]
 
-    for _ in range(3000):
+    for epoch in range(1000):
         for i in range(population):
             # 속도 계산
-            w = 0.2
-            c1 = 0.5
+            w = 0.4
+            c1 = 0.6
             r1 = random.randrange(0, 1)
-            c2 = 0.5
+            c2 = 0.6
             r2 = random.randrange(0, 1)
-            particleV[i] = [w * vi + c1 * r1 * (pb- si) + c2 * r2 * (loss(*globalBest) - si) for vi, pb, si in zip(particleV[i], particleBest[i], particleX[i])]
+            particleV[i] = [w * vi + c1 * r1 * (pb - si) + c2 * r2 * (gb - si) for si, vi, pb, gb
+                            in zip(particleX[i], particleV[i], particleBest[i], globalBest)]
 
             # 위치 계산
             particleX[i] = [si + vi for si, vi in zip(particleX[i], particleV[i])]
@@ -105,8 +106,12 @@ def PSO(setX, setY):
                 particleBest[i] = particleX[i]
                 if loss(*particleX[i]) < loss(*globalBest):
                     globalBest = particleX[i]
+        print("No.%d Best Loss : %0.10f" % (epoch + 1, loss(*globalBest)))
 
     return particleX
+
+
+# 2). 역행렬 계산을 통해 구해보자.
 
 
 if __name__ == "__main__":
@@ -120,7 +125,7 @@ if __name__ == "__main__":
     plot2 = jointLocation(np.pi / 4, np.pi / 4, np.pi / 4)
     plt.plot(plot2[0], plot2[1], 'o-')
 
-    answers = PSO(1, 3)
+    answers = PSO(10, 30)
     print(answers)
     for answer in answers:
         plot3 = jointLocation(*answer)
