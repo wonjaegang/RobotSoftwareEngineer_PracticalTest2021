@@ -43,7 +43,7 @@ def T23(motor3):
     return DH_parameter(motor3 - np.pi / 2, 0, l3, 0)
 
 
-# 변환행렬을 이용해 좐절 및 공구단의 위치 계산
+# 변환행렬을 이용해 관절 및 공구단의 위치 계산
 def jointLocation(m1, m2, m3):
     P0 = [0, 0, 0, 1]
     P1 = T01(m1) @ P0
@@ -54,13 +54,17 @@ def jointLocation(m1, m2, m3):
     return X, Y
 
 
-# 역기구학 계산: 목표점 (x, y) = (1, 3)
+# 역기구학 계산: 목표변환행렬 [0, 0, 0, 10]
+#                          [0, 0, 0, 30]
+#                          [0, 0, 0, 0 ]
+#                          [0, 0, 0, 1 ]
 # 1) PSO 를 사용해보자
-def PSO(setX, setY):
+def PSO(Tmatrix):
     # PSO 초기화
     def loss(d1, d2, d3):
-        endLocation = (T01(d1) @ T12(d2) @ T23(d3) @ [0, 0, 0, 1])[:2]
-        return (setX - endLocation[0]) ** 2 + (setY - endLocation[1]) ** 2
+        T03 = T01(d1) @ T12(d2) @ T23(d3)
+        error = (T03 - Tmatrix) ** 2
+        return error.sum()
 
     def limitSize(x):
         if x > np.pi / 2:
@@ -70,7 +74,7 @@ def PSO(setX, setY):
         else:
             return x
 
-    population = 100
+    population = 20
     particleX = [[random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
@@ -87,10 +91,10 @@ def PSO(setX, setY):
     for epoch in range(1000):
         for i in range(population):
             # 속도 계산
-            w = 0.4
-            c1 = 0.6
+            w = 0.6
+            c1 = 1
             r1 = random.randrange(0, 1)
-            c2 = 0.6
+            c2 = 1
             r2 = random.randrange(0, 1)
             particleV[i] = [w * vi + c1 * r1 * (pb - si) + c2 * r2 * (gb - si) for si, vi, pb, gb
                             in zip(particleX[i], particleV[i], particleBest[i], globalBest)]
@@ -125,7 +129,11 @@ if __name__ == "__main__":
     plot2 = jointLocation(np.pi / 4, np.pi / 4, np.pi / 4)
     plt.plot(plot2[0], plot2[1], 'o-')
 
-    answers = PSO(10, 30)
+    targetT = np.array([[0, 0, 0, 10],
+                        [0, 0, 0, 30],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 1]])
+    answers = PSO(targetT)
     print(answers)
     for answer in answers:
         plot3 = jointLocation(*answer)
