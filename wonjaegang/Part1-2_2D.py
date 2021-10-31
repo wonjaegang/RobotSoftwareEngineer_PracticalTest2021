@@ -54,27 +54,32 @@ def jointLocation(m1, m2, m3):
     return X, Y
 
 
-# 역기구학 계산: 목표변환행렬 [0, 0, 0, 10]
-#                          [0, 0, 0, 30]
-#                          [0, 0, 0, 0 ]
+# 역기구학 계산: 목표변환행렬 [1, 0, 0, 10]
+#                          [0, 1, 0, 30]
+#                          [0, 0, 1, 0 ]
 #                          [0, 0, 0, 1 ]
 # 1) PSO 를 사용해보자
-def PSO(Tmatrix):
+def PSO(matrixT):
     # PSO 초기화
     def loss(d1, d2, d3):
+        def absMax(m):
+            return m.max()
         T03 = T01(d1) @ T12(d2) @ T23(d3)
-        error = (T03 - Tmatrix) ** 2
-        return error.sum()
+        k = 0.5
+        unitP = np.array([[0],
+                          [0],
+                          [0],
+                          [1]])
+        unitR = np.array([[1, 0, 0],
+                          [0, 1, 0],
+                          [0, 0, 1],
+                          [0, 0, 0]])
+        Ep = (matrixT @ unitP - T03 @ unitP)[:3].__abs__().max() / (matrixT @ unitP)[:3].__abs__().max()
+        Er = (matrixT @ unitR - T03 @ unitR)[:3].__abs__().max() / (matrixT @ unitR)[:3].__abs__().max()
+        z = k * Ep + (1 - k) * Er
+        return z
 
-    def limitSize(x):
-        if x > np.pi / 2:
-            return np.pi / 2
-        elif x < -np.pi / 2:
-            return -np.pi / 2
-        else:
-            return x
-
-    population = 20
+    population = 30
     particleX = [[random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
@@ -102,9 +107,6 @@ def PSO(Tmatrix):
             # 위치 계산
             particleX[i] = [si + vi for si, vi in zip(particleX[i], particleV[i])]
 
-            # # 위치 제한
-            # particleX[i] = [limitSize(x) for x in particleX[i]]
-
             # 평가 및 업데이트
             if loss(*particleX[i]) < loss(*particleBest[i]):
                 particleBest[i] = particleX[i]
@@ -112,7 +114,7 @@ def PSO(Tmatrix):
                     globalBest = particleX[i]
         print("No.%d Best Loss : %0.10f" % (epoch + 1, loss(*globalBest)))
 
-    return particleX
+    return particleX, globalBest
 
 
 # 2). 역행렬 계산을 통해 구해보자.
@@ -129,15 +131,18 @@ if __name__ == "__main__":
     plot2 = jointLocation(np.pi / 4, np.pi / 4, np.pi / 4)
     plt.plot(plot2[0], plot2[1], 'o-')
 
-    targetT = np.array([[0, 0, 0, 10],
-                        [0, 0, 0, 30],
-                        [0, 0, 0, 0],
+    targetT = np.array([[1, 0, 0, 10],
+                        [0, 1, 0, 30],
+                        [0, 0, 1, 0],
                         [0, 0, 0, 1]])
     answers = PSO(targetT)
     print(answers)
-    for answer in answers:
+    for answer in answers[0]:
         plot3 = jointLocation(*answer)
         plt.plot(plot3[0], plot3[1], 'o-')
+
+    plot4 = jointLocation(*answers[1])
+    plt.plot(plot4[0], plot4[1], 'o-')
 
     plt.xlabel('x')
     plt.ylabel('y')
