@@ -1,12 +1,11 @@
-# 액추에이터 각도에 따른 매니퓰레이터 자세 출력
+# 매니퓰레이터 역기구학 PSO 연습
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+import random
 
-
-# 매니퓰레이터 상제정보 (그림 참고)
-l1, l2, l3, l4, l5, l6 = 4, 1, 2, 1.5, 1, 1
+# 매니퓰레이터 기본 사양
+l1, l2, l3 = 2, 1, 1
 
 
 # DH 파라미터 함수
@@ -30,56 +29,121 @@ def DH_parameter(theta, d, a, alpha):
     return T_theta @ T_d @ T_a @ T_alpha
 
 
-# DH 파라미터를 통해 변환행렬 계산
+# DH 파라미터를 통한 변환행렬 함수
 def T01(motor1):
-    return DH_parameter(motor1, l1, 0, np.pi / 2)
+    return DH_parameter(motor1 + np.pi / 2, 0, l1, 0)
 
 
 def T12(motor2):
-    return DH_parameter(motor2, -l2, l3, 0)
+    return DH_parameter(motor2 - np.pi / 2, 0, l2, 0)
 
 
 def T23(motor3):
-    return DH_parameter(motor3, 0, l4, -np.pi / 2)
+    return DH_parameter(motor3 - np.pi / 2, 0, l3, 0)
 
 
-def T34(motor4):
-    return DH_parameter(motor4 + np.pi / 2, 0, 0, np.pi / 2)
-
-
-def T45(motor5):
-    return DH_parameter(motor5, l5 + l6, 0, 0)
-
-
-# 변환행렬을 통한 관절 및 공구단의 위치 계산
-def jointLocation(m1, m2, m3, m4, m5):
-    P0 = [0, 0, 0, 1]
+# 변환행렬 함수를 통한 관절 및 공구단 위치 계산 함수
+def jointLocation(m1, m2, m3):
+    P0 = np.array([[1, 0, 0, 0],
+                   [0, 1, 0, 0],
+                   [0, 0, 1, 0],
+                   [0, 0, 0, 1]])
     P1 = T01(m1) @ P0
     P2 = T01(m1) @ T12(m2) @ P0
     P3 = T01(m1) @ T12(m2) @ T23(m3) @ P0
-    P4 = T01(m1) @ T12(m2) @ T23(m3) @ T34(m4) @ P0
-    P5 = T01(m1) @ T12(m2) @ T23(m3) @ T34(m4) @ T45(m5) @ P0
-    X = [P0[0], P1[0], P2[0], P3[0], P4[0], P5[0]]
-    Y = [P0[1], P1[1], P2[1], P3[1], P4[1], P5[1]]
-    Z = [P0[2], P1[2], P2[2], P3[2], P4[2], P5[2]]
-    return X, Y, Z
+    X = [P0[0, 3], P1[0, 3], P2[0, 3], P3[0, 3]]
+    Y = [P0[1, 3], P1[1, 3], P2[1, 3], P3[1, 3]]
+    return X, Y
+
+
+# PSO 를 통한 역기구학
+def IK_PSO(T_target):
+    # 손실함수 설정
+    def loss(d1, d2, d3):
+        k = 0.5
+        T_now = T01(d1) @ T12(d2) @ T23(d3)
+        unitP = np.array([[0],
+                          [0],
+                          [0],
+                          [1]])
+        unitR = np.array([[1, 0, 0],
+                          [0, 1, 0],
+                          [0, 0, 1],
+                          [0, 0, 0]])
+        Ep = (T_now @ unitP - T_target @ unitP)[:3].__abs__().max() / (T_target @ unitP)[:3].__abs__().max()
+        Er = (T_now @ unitR - T_target @ unitR)[:3].__abs__().max() / (T_target @ unitR)[:3].__abs__().max()
+        z = k * Ep + (1 - k) * Er
+        return z
+
+    # PSO 초기화
+    targetError = 0.00000001
+    population = 100
+    particleS = [[random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    particleV = [[random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    particleBest = [[random.uniform(-np.pi / 2, np.pi / 2),
+                     random.uniform(-np.pi / 2, np.pi / 2),
+                     random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    globalBest = [random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2),
+                  random.uniform(-np.pi / 2, np.pi / 2)]
+
+    # PSO 루프
+    count = 0
+    error = float('inf')
+    while error > targetError:
+        for i in range(population):
+            # 속도 업데이트
+            w = 0.6
+            c1 = 0.8
+            r1 = random.uniform(0, 1)
+            c2 = 0.8
+            r2 = random.uniform(0, 1)
+            particleV[i] = [w * vi + c1 * r1 * (pb - si) + c2 * r2 * (gb - si)
+                            for si, vi, pb, gb in zip(particleS[i], particleV[i], particleBest[i], globalBest)]
+            # 위치 업데이트
+            particleS[i] = [si + vi for si, vi in zip(particleS[i], particleV[i])]
+
+            # 평가 및 최고점 업데이트
+            loss_now = loss(*particleS[i])
+            if loss_now < loss(*particleBest[i]):
+                particleBest[i] = particleS[i]
+                if loss_now < loss(*globalBest):
+                    globalBest = particleS[i]
+
+        count += 1
+        error = loss(*globalBest)
+        print("NO.%d Best Loss: %.10f" % (count, error))
+
+    return globalBest
 
 
 if __name__ == "__main__":
-    # 매니퓰레이터 자세출력
+    # 매니퓰레이터 초기 자세 출력
     plt.figure(1)
-    ax = plt.axes(projection='3d')
+    plt.axes().set_aspect('equal')
 
-    plot1 = jointLocation(0, 0, 0, 0, 0)
-    ax.plot(plot1[0], plot1[1], plot1[2], 'o-')
+    plt.plot(*jointLocation(0, 0, 0))
 
-    plot2 = jointLocation(np.pi / 6, np.pi / 6, np.pi / 6, np.pi / 6, np.pi / 6)
-    ax.plot(plot2[0], plot2[1], plot2[2], 'o-')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title("Manipulator initial pose")
 
-    ax.set_title("Manipulator Pose")
-    ax.legend(["Before", "After"])
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    # 매니퓰레이터 역기구학 PSO 결과 출력
+    plt.figure(2)
+    plt.axes().set_aspect('equal')
+
+    T = np.array([[1, 0, 0, 0],
+                  [0, 1, 0, 2],
+                  [0, 0, 1, 0],
+                  [0, 0, 0, 1]])
+    plt.plot(*jointLocation(*IK_PSO(T)))
+
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title("Manipulator inverse kinematics by PSO")
 
     plt.show()
