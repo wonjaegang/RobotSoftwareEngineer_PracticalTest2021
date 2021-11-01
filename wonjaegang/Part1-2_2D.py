@@ -62,10 +62,8 @@ def jointLocation(m1, m2, m3):
 def PSO(matrixT):
     # PSO 초기화
     def loss(d1, d2, d3):
-        def absMax(m):
-            return m.max()
         T03 = T01(d1) @ T12(d2) @ T23(d3)
-        k = 0.5
+        k = 0.6
         unitP = np.array([[0],
                           [0],
                           [0],
@@ -77,6 +75,10 @@ def PSO(matrixT):
         Ep = (matrixT @ unitP - T03 @ unitP)[:3].__abs__().max() / (matrixT @ unitP)[:3].__abs__().max()
         Er = (matrixT @ unitR - T03 @ unitR)[:3].__abs__().max() / (matrixT @ unitR)[:3].__abs__().max()
         z = k * Ep + (1 - k) * Er
+        # print(matrixT)
+        # print(T03)
+        # print((matrixT @ unitP - T03 @ unitP)[:3])
+        # print((matrixT @ unitP - T03 @ unitP)[:3].__abs__().max())
         return z
 
     population = 30
@@ -93,26 +95,31 @@ def PSO(matrixT):
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2)]
 
-    for epoch in range(1000):
+    bestLoss = float('inf')
+    count = 0
+    while bestLoss > 0.000001:
         for i in range(population):
             # 속도 계산
             w = 0.6
-            c1 = 1
-            r1 = random.randrange(0, 1)
-            c2 = 1
-            r2 = random.randrange(0, 1)
+            c1 = 0.8
+            r1 = random.uniform(0, 1)
+            c2 = 0.8
+            r2 = random.uniform(0, 1)
             particleV[i] = [w * vi + c1 * r1 * (pb - si) + c2 * r2 * (gb - si) for si, vi, pb, gb
                             in zip(particleX[i], particleV[i], particleBest[i], globalBest)]
 
             # 위치 계산
             particleX[i] = [si + vi for si, vi in zip(particleX[i], particleV[i])]
 
-            # 평가 및 업데이트
-            if loss(*particleX[i]) < loss(*particleBest[i]):
+            # 평가 및 업데이트'
+            lossNow = loss(*particleX[i])
+            if lossNow < loss(*particleBest[i]):
                 particleBest[i] = particleX[i]
-                if loss(*particleX[i]) < loss(*globalBest):
+                if lossNow < loss(*globalBest):
                     globalBest = particleX[i]
-        print("No.%d Best Loss : %0.10f" % (epoch + 1, loss(*globalBest)))
+        bestLoss = loss(*globalBest)
+        count += 1
+        print("No.%d Best Loss : %0.10f" % (count, bestLoss))
 
     return particleX, globalBest
 
