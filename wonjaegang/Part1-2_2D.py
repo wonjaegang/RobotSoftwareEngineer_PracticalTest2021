@@ -54,13 +54,10 @@ def jointLocation(m1, m2, m3):
     return X, Y
 
 
-# 역기구학 계산: 목표변환행렬 [1, 0, 0, 10]
-#                          [0, 1, 0, 30]
-#                          [0, 0, 1, 0 ]
-#                          [0, 0, 0, 1 ]
-# 1) PSO 를 사용해보자
+# 역기구학 계산: 목표변환행렬을 입력받아 모터 관절각 출력
+# PSO 를 사용해보자
 def PSO(matrixT):
-    # PSO 초기화
+    # 손실함수 설정
     def loss(d1, d2, d3):
         T03 = T01(d1) @ T12(d2) @ T23(d3)
         k = 0.6
@@ -75,13 +72,11 @@ def PSO(matrixT):
         Ep = (matrixT @ unitP - T03 @ unitP)[:3].__abs__().max() / (matrixT @ unitP)[:3].__abs__().max()
         Er = (matrixT @ unitR - T03 @ unitR)[:3].__abs__().max() / (matrixT @ unitR)[:3].__abs__().max()
         z = k * Ep + (1 - k) * Er
-        # print(matrixT)
-        # print(T03)
-        # print((matrixT @ unitP - T03 @ unitP)[:3])
-        # print((matrixT @ unitP - T03 @ unitP)[:3].__abs__().max())
         return z
 
-    population = 30
+    # PSO 초기화
+    targetError = 0.0000000000001
+    population = 100
     particleX = [[random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2),
                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
@@ -95,9 +90,10 @@ def PSO(matrixT):
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2)]
 
+    # PSO 루프
     bestLoss = float('inf')
     count = 0
-    while bestLoss > 0.000001:
+    while bestLoss > targetError:
         for i in range(population):
             # 속도 계산
             w = 0.6
@@ -117,14 +113,12 @@ def PSO(matrixT):
                 particleBest[i] = particleX[i]
                 if lossNow < loss(*globalBest):
                     globalBest = particleX[i]
+
         bestLoss = loss(*globalBest)
         count += 1
-        print("No.%d Best Loss : %0.10f" % (count, bestLoss))
+        print("No.%d Best Loss : %0.13f" % (count, bestLoss))
 
     return particleX, globalBest
-
-
-# 2). 역행렬 계산을 통해 구해보자.
 
 
 if __name__ == "__main__":
@@ -139,17 +133,20 @@ if __name__ == "__main__":
     plt.plot(plot2[0], plot2[1], 'o-')
 
     targetT = np.array([[1, 0, 0, 10],
-                        [0, 1, 0, 30],
+                        [0, 1, 0, 20],
                         [0, 0, 1, 0],
                         [0, 0, 0, 1]])
     answers = PSO(targetT)
-    print(answers)
+
     for answer in answers[0]:
         plot3 = jointLocation(*answer)
         plt.plot(plot3[0], plot3[1], 'o-')
 
     plot4 = jointLocation(*answers[1])
     plt.plot(plot4[0], plot4[1], 'o-')
+
+    np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.13f}".format(x)})
+    print(T01(answers[1][0]) @ T12(answers[1][1]) @ T23(answers[1][2]))
 
     plt.xlabel('x')
     plt.ylabel('y')
