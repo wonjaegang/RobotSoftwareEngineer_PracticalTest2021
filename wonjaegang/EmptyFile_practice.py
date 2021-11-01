@@ -136,14 +136,18 @@ if __name__ == "__main__":
     plt.figure(2)
     plt.axes().set_aspect('equal')
 
-    T = np.array([[1, 0, 0, 0],
+    T = np.array([[1, 0, 0, 1],
                   [0, 1, 0, 2],
                   [0, 0, 1, 0],
                   [0, 0, 0, 1]])
-    plt.plot(*jointLocation(*IK_PSO(T)))
+    result = IK_PSO(T)
+    plt.plot(*jointLocation(*result))
 
     plt.xlabel('x')
     plt.ylabel('y')
     plt.title("Manipulator inverse kinematics by PSO")
+
+    # 결과값 터미널 창 출력
+    print(result)
 
     plt.show()
