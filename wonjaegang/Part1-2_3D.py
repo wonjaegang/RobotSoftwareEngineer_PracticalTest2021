@@ -119,7 +119,7 @@ def IK_PSO(T_target):
     while error > targetError:
         for i in range(population):
             # 속도 업데이트
-            w = 0.6
+            w = 0.4
             c1 = 0.8
             r1 = random.uniform(0, 1)
             c2 = 0.8
