@@ -105,11 +105,13 @@ def IK_PSO(T_target):
                      random.uniform(-np.pi / 2, np.pi / 2),
                      random.uniform(-np.pi / 2, np.pi / 2),
                      random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    particleBestValue = [loss(*best) for best in particleBest]
     globalBest = [random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2)]
+    globalBestValue = loss(*globalBest)
 
     # PSO loop
     count = 0
@@ -130,10 +132,12 @@ def IK_PSO(T_target):
 
             # 평가 및 최고점 업데이트
             loss_now = loss(*particleS[i])
-            if loss_now < loss(*particleBest[i]):
+            if loss_now < particleBestValue[i]:
                 particleBest[i] = particleS[i]
-                if loss_now < loss(*globalBest):
+                particleBestValue[i] = loss_now
+                if loss_now < globalBestValue:
                     globalBest = particleS[i]
+                    globalBestValue = loss_now
 
         error = loss(*globalBest)
         count += 1
