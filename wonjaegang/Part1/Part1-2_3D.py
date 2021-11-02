@@ -171,7 +171,7 @@ if __name__ == "__main__":
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
-    ax.set_title("Manipulator inverse kinamatics using PSO")
+    ax.set_title("Manipulator inverse kinematics using PSO")
 
     print(result)
     plt.show()
