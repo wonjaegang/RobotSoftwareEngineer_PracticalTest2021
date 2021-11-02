@@ -147,7 +147,5 @@ if __name__ == "__main__":
     plt.ylabel('y')
     plt.title("Manipulator inverse kinematics by PSO")
 
-    # 결과값 터미널 창 출력
     print(result)
-
     plt.show()
