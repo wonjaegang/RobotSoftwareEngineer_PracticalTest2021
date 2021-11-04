@@ -60,6 +60,9 @@ def jointLocation(m1, m2, m3):
 def IK_PSO(T_target):
     # 손실함수 설정
     def loss(d1, d2, d3):
+        # # 제한조건을 부여해 특정 역기구학 해를 구할 수 있다
+        # if d2 > 0:
+        #     return float('inf')
         k = 0.5
         T_now = T01(d1) @ T12(d2) @ T23(d3)
         unitP = np.array([[0],
@@ -77,7 +80,7 @@ def IK_PSO(T_target):
 
     # PSO 초기화
     targetError = 0.00000001
-    population = 100
+    population = 1000
     particleS = [[random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
@@ -87,9 +90,11 @@ def IK_PSO(T_target):
     particleBest = [[random.uniform(-np.pi / 2, np.pi / 2),
                      random.uniform(-np.pi / 2, np.pi / 2),
                      random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    particleBestValue = [loss(*best) for best in particleBest]
     globalBest = [random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2),
                   random.uniform(-np.pi / 2, np.pi / 2)]
+    globalBestValue = loss(*globalBest)
 
     # PSO 루프
     count = 0
@@ -109,13 +114,15 @@ def IK_PSO(T_target):
 
             # 평가 및 최고점 업데이트
             loss_now = loss(*particleS[i])
-            if loss_now < loss(*particleBest[i]):
+            if loss_now < particleBestValue[i]:
                 particleBest[i] = particleS[i]
-                if loss_now < loss(*globalBest):
+                particleBestValue[i] = loss_now
+                if loss_now < globalBestValue:
                     globalBest = particleS[i]
+                    globalBestValue = loss_now
 
         count += 1
-        error = loss(*globalBest)
+        error = globalBestValue
         print("NO.%d Best Loss: %.10f" % (count, error))
 
     return globalBest
