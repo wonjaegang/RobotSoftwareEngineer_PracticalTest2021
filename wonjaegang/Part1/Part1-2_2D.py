@@ -51,8 +51,8 @@ def jointLocation(m1, m2, m3):
     P1 = T01(m1) @ P0
     P2 = T01(m1) @ T12(m2) @ P0
     P3 = T01(m1) @ T12(m2) @ T23(m3) @ P0
-    X = [P0[0, 3], P1[0, 3], P2[0, 3], P3[0, 3]]
-    Y = [P0[1, 3], P1[1, 3], P2[1, 3], P3[1, 3]]
+    X = [p[0, 3] for p in [P0, P1, P2, P3]]
+    Y = [p[1, 3] for p in [P0, P1, P2, P3]]
     return X, Y
 
 
@@ -81,19 +81,11 @@ def IK_PSO(T_target):
     # PSO 초기화
     targetError = 0.00000001
     population = 1000
-    particleS = [[random.uniform(-np.pi / 2, np.pi / 2),
-                  random.uniform(-np.pi / 2, np.pi / 2),
-                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
-    particleV = [[random.uniform(-np.pi / 2, np.pi / 2),
-                  random.uniform(-np.pi / 2, np.pi / 2),
-                  random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
-    particleBest = [[random.uniform(-np.pi / 2, np.pi / 2),
-                     random.uniform(-np.pi / 2, np.pi / 2),
-                     random.uniform(-np.pi / 2, np.pi / 2)] for _ in range(population)]
+    particleS = [[random.uniform(-np.pi / 2, np.pi / 2) for _ in range(3)] for _ in range(population)]
+    particleV = [[random.uniform(-np.pi / 2, np.pi / 2) for _ in range(3)] for _ in range(population)]
+    particleBest = [[random.uniform(-np.pi / 2, np.pi / 2) for _ in range(3)] for _ in range(population)]
     particleBestValue = [loss(*best) for best in particleBest]
-    globalBest = [random.uniform(-np.pi / 2, np.pi / 2),
-                  random.uniform(-np.pi / 2, np.pi / 2),
-                  random.uniform(-np.pi / 2, np.pi / 2)]
+    globalBest = [random.uniform(-np.pi / 2, np.pi / 2) for _ in range(3)]
     globalBestValue = loss(*globalBest)
 
     # PSO 루프
