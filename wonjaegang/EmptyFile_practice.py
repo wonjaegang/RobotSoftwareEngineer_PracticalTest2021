@@ -69,6 +69,11 @@ def jointLocation(m1, m2, m3, m4, m5):
 
 # Inverse kinematics using PSO
 def IK_PSO(T_target):
+
+    plt.ion()
+    figure = plt.subplots(figsize=(8, 6))[0]
+    ax = plt.axes(projection='3d')
+
     def loss(d1, d2, d3, d4, d5):
         T_now = T01(d1) @ T12(d2) @ T23(d3) @ T34(d4) @ T45(d5)
         k = 0.5
@@ -86,7 +91,7 @@ def IK_PSO(T_target):
         return z
 
     targetError = 0.00000001
-    population = 1000
+    population = 50
     particleS = [[random.uniform(-np.pi / 2, np.pi / 2) for _ in range(5)] for _ in range(population)]
     particleV = [[random.uniform(-np.pi / 2, np.pi / 2) for _ in range(5)] for _ in range(population)]
     particleBest = [[random.uniform(-np.pi / 2, np.pi / 2) for _ in range(5)] for _ in range(population)]
@@ -115,28 +120,40 @@ def IK_PSO(T_target):
                     globalBest = particleS[i]
                     globalBestValue = loss_now
 
+            ax.plot(*jointLocation(*particleS[i]))
+
         error = globalBestValue
         count += 1
         print("No %d best loss: %.8f" % (count, error))
+
+
+        figure.canvas.draw()
+        figure.canvas.flush_events()
+        plt.cla()
 
     return globalBest
 
 
 if __name__ == "__main__":
-    plt.figure(1)
-    ax = plt.axes(projection='3d')
-
-    ax.plot(*jointLocation(0, 0, 0, 0, 0))
-
-    T = np.array([[0, 0, 1, 3],
-                  [0, -1, 0, 1],
-                  [1, 0, 0, 6],
-                  [0, 0, 0, 1]])
-    ax.plot(*jointLocation(*IK_PSO(T)))
-
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-    ax.set_title("Manipulator pose")
-
-    plt.show()
+    # plt.figure(1)
+    # ax = plt.axes(projection='3d')
+    #
+    # ax.plot(*jointLocation(0, 0, 0, 0, 0))
+    #
+    T1 = np.array([[0, 0, 1, 3],
+                   [0, -1, 0, 1],
+                   [1, 0, 0, 6],
+                   [0, 0, 0, 1]])
+    T2 = np.array([[1, 0, 0, 2],
+                   [0, 0, -1, -1],
+                   [0, 1, 0, 5],
+                   [0, 0, 0, 1]])
+    IK_PSO(T1)
+    # ax.plot(*jointLocation(*IK_PSO(T2)))
+    #
+    # ax.set_xlabel('x')
+    # ax.set_ylabel('y')
+    # ax.set_zlabel('z')
+    # ax.set_title("Manipulator pose")
+    #
+    # plt.show()
