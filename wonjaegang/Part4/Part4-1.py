@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 
-# 물체 운동 데이터 셋
+# 물체 특성 데이터시트
 s0 = [0, 0, 0, 20, 30]
 v0 = [0, 10, 20, 0, 0]
 a0 = [5, 1, 0, 5, 2]
@@ -12,71 +12,67 @@ v1 = [0, 10, 20, 0, 0]
 a1 = [-5, -1, 0, -10, -2]
 
 
-# 반올림 함수
 def round1(num):
-    return round(num, 2)
+    return round(num, 1)
 
 
 if __name__ == "__main__":
+    # 각 물체마다
     for i in range(5):
-        # 상태 초기화
-        print("%dth" % (i + 1))
+        # 물체 특성 초기화
         dt = 0.01
         s, v, a = [s0[i]], [v0[i]], [a0[i]]
         state = "acceleration"
 
-        # 이동루프
+        # 메인 루프
         while state != "end":
-            # 속도 계산
-            v.append(v[-1] + dt * a[-1])
-            print("v:", v[-1], end=', ')
+            # 속도 업데이트
+            v.append(v[-1] + a[-1] * dt)
 
-            # 위치계산
-            s.append(s[-1] + dt * v[-1])
-            print("s:", s[-1])
+            # 위치 업데이트
+            s.append(s[-1] + v[-1] * dt)
 
-            # 가속도 계산 및 상태 업데이트
-            # 가속상태
+            # 가속도 및 상태 업데이트
+            # 가속 상태
             if state == "acceleration":
-                if round1(v[-1]) == round1(v_max[i]):
-                    print("acc -> max")
+                # 가속 -> 감속
+                if round1(2 * a1[i] * (s1[i] - s[-1])) >= round1((v1[i] - v[-1]) * (v1[i] + v[-1])):
+                    state = "deceleration"
+                    a.append(a1[i])
+                # 가속 -> 최고속도
+                elif round1(v[-1]) == round1(v_max[i]):
                     state = "max velocity"
                     a.append(0)
-                elif round1(2 * -a1[i] * (s1[i] - s[-1])) <= \
-                        round1((v[-1] - v1[i]) * (v[-1] + v1[i])):
-                    print("acc -> dec")
-                    state = "deceleration"
+                # 가속 -> 가속
                 else:
                     a.append(a0[i])
 
-            # 최대속도에서 등속운동
-            elif state == "max velocity":
-                if round1(2 * -a1[i] * (s1[i] - s[-1])) <= \
-                        round1((v[-1] - v1[i]) * (v[-1] + v1[i])):
-                    print("max -> dec")
+            # 최고속도
+            if state == "max velocity":
+                # 최고속도 -> 감속
+                if round1(2 * a1[i] * (s1[i] - s[-1])) >= round1((v1[i] - v[-1]) * (v1[i] + v[-1])):
                     state = "deceleration"
                     a.append(a1[i])
+                # 최고속도 -> 최고속도
                 else:
                     a.append(0)
-
-            # 감속상태
-            elif state == "deceleration":
-                # s로 계산하면 오차가 누적되므로 v로 계산하는게 바람직하다.
-                # 그러나 a1이 0인경우 v를 이용한 계산이 불가능하므로 s로 계산한다.
+            # 감속 상태
+            if state == "deceleration":
+                # 감속 가속도가 0
                 if a1[i] == 0:
                     if round1(s[-1]) >= round1(s1[i]):
-                        print("dec -> end")
                         state = "end"
                         a.append(a1[i])
                     else:
                         a.append(a1[i])
+                # 감속 가속도가 0 아닐때
                 else:
                     if round1(v[-1]) == round1(v1[i]):
-                        print("dec -> end")
                         state = "end"
                         a.append(a1[i])
                     else:
                         a.append(a1[i])
+
         plt.figure(1)
         plt.plot([dt * i for i in range(len(s))], s)
         plt.title("s-t Graph")
