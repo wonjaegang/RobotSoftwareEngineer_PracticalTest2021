@@ -49,7 +49,7 @@ if __name__ == "__main__":
                 else:
                     a.append(a0[i])
 
-            # 최대속도인 상태
+            # 최대속도에서 등속운동
             elif state == "max velocity":
                 if round1(2 * -a1[i] * (s1[i] - s[-1])) <= \
                         round1((v[-1] - v1[i]) * (v[-1] + v1[i])):
@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
             # 감속상태
             elif state == "deceleration":
-                # s로 계산하면 오차가 누적되므로 좋지않아 v로 계산하는게 좋다. 그러나 a1이 0인경우 불가능하므로
-                # 어쩔 수 없이 s로 계산한다.
+                # s로 계산하면 오차가 누적되므로 v로 계산하는게 바람직하다.
+                # 그러나 a1이 0인경우 v를 이용한 계산이 불가능하므로 s로 계산한다.
                 if a1[i] == 0:
                     if round1(s[-1]) >= round1(s1[i]):
                         print("dec -> end")
