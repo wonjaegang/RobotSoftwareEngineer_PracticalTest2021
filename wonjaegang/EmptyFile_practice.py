@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # 각 물체마다
     for i in range(5):
         # 물체 특성 초기화
-        dt = 0.1
+        dt = 0.01
         s, v, a = [s0[i]], [v0[i]], [a0[i]]
         state = "acceleration"
 
@@ -58,21 +58,40 @@ if __name__ == "__main__":
                     a.append(0)
             # 감속 상태
             if state == "deceleration":
-                # 감속 -> 도착
-                if round1(s[-1]) >= round1(s1[i]):
-                    state = "end"
-                    a.append(a1[i])
-                # 감속 -> 감속
+                # 감속 가속도가 0
+                if a1[i] == 0:
+                    if round1(s[-1]) >= round1(s1[i]):
+                        state = "end"
+                        a.append(a1[i])
+                    else:
+                        a.append(a1[i])
+                # 감속 가속도가 0 아닐때
                 else:
-                    a.append(a1[i])
+                    if round1(v[-1]) == round1(v1[i]):
+                        state = "end"
+                        a.append(a1[i])
+                    else:
+                        a.append(a1[i])
 
         plt.figure(1)
         plt.plot([dt * i for i in range(len(s))], s)
+        plt.title("s-t Graph")
+        plt.xlabel('t(sec)')
+        plt.ylabel('s(m)')
+        plt.legend([1, 2, 3, 4, 5])
 
         plt.figure(2)
         plt.plot([dt * i for i in range(len(v))], v)
+        plt.title("v-t Graph")
+        plt.xlabel('v(m/sec)')
+        plt.ylabel('s(m)')
+        plt.legend([1, 2, 3, 4, 5])
 
         plt.figure(3)
         plt.plot([dt * i for i in range(len(a))], a)
+        plt.title("a-t Graph")
+        plt.xlabel('t(sec)')
+        plt.ylabel('a(m/s^2)')
+        plt.legend([1, 2, 3, 4, 5])
 
     plt.show()
