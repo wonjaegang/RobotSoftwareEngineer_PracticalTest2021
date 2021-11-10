@@ -86,6 +86,11 @@ def IK_PSO(T_target):
     globalbest = [rd.uniform(-np.pi / 2, np.pi / 2) for _ in range(dimension)]
     globalbestValue = loss(*globalbest)
 
+    # 그래프 출력 설정
+    plt.axes().set_aspect('equal')
+    plt.ion()
+    figure = plt.subplots(figsize=(8, 6))[0]
+
     # PSO 메인 루프
     error = float('inf')
     count = 0
@@ -113,28 +118,36 @@ def IK_PSO(T_target):
                     globalbest = particleS[i]
                     globalbestValue = loss_now
 
+            # 자세 출력
+            plt.plot(*jointLocation(*particleS[i]))
+
         # 평가
         count += 1
         error = globalbestValue
         print("No %d best loss: %.8f" % (count, error))
 
+        # 자세출력 업데이트
+        figure.canvas.draw()
+        figure.canvas.flush_events()
+        plt.cla()
+
     return globalbest
 
 
 if __name__ == "__main__":
-    plt.figure(1)
-    plt.axes().set_aspect('equal')
-
-    plt.plot(*jointLocation(0, 0, 0))
+    # plt.figure(1)
+    # plt.axes().set_aspect('equal')
+    #
+    # plt.plot(*jointLocation(0, 0, 0))
 
     T = np.array([[0, -1, 0, 1],
                   [1, 0, 0, 3],
                   [0, 0, 1, 0],
                   [0, 0, 0, 1]])
     result = IK_PSO(T)
-    plt.plot(*jointLocation(*result))
-
-    plt.title("Manipulator pose")
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.show()
+    # plt.plot(*jointLocation(*result))
+    #
+    # plt.title("Manipulator pose")
+    # plt.xlabel("x")
+    # plt.ylabel("y")
+    # plt.show()
