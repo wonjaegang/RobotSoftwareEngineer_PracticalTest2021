@@ -39,7 +39,7 @@ def T12(motor2):
 
 
 def T23(motor3):
-    return DH_parameter(motor3, 0, sum(r[1]), 0)
+    return DH_parameter(motor3, 0, sum(r[2]), 0)
 
 
 # 뉴턴 - 오일러 동역학
