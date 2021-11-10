@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import random as rd
 
 # 매니퓰레이터 기본 사양
 l1, l2, l3 = 2, 1, 1
@@ -55,11 +56,83 @@ def jointLocation(motor1, motor2, motor3):
     return X, Y
 
 
+# PSO 를 이용한 역기구학 함수
+def IK_PSO(T_target):
+    # 손실함수 설정
+    def loss(d1, d2, d3):
+        k = 0.5
+        T_now = T01(d1) @ T12(d2) @ T23(d3)
+        unitP = np.array([[0],
+                          [0],
+                          [0],
+                          [1]])
+        unitR = np.array([[1, 0, 0],
+                          [0, 1, 0],
+                          [0, 0, 1],
+                          [0, 0, 0]])
+        Ep = (T_now @ unitP - T_target @ unitP)[:3].__abs__().max() / (T_target @ unitP)[:3].__abs__().max()
+        Er = (T_now @ unitR - T_target @ unitR)[:3].__abs__().max() / (T_target @ unitR)[:3].__abs__().max()
+        z = k * Ep + (1 - k) * Er
+        return z
+    # PSO 초기화
+    dimension = 3
+    targetError = 0.0000001
+    population = 1000
+
+    particleS = [[rd.uniform(-np.pi / 2, np.pi / 2) for _ in range(dimension)] for _ in range(population)]
+    particleV = [[rd.uniform(-np.pi / 2, np.pi / 2) for _ in range(dimension)] for _ in range(population)]
+    particlebest = [[rd.uniform(-np.pi / 2, np.pi / 2) for _ in range(dimension)] for _ in range(population)]
+    particlebestValue = [loss(*best) for best in particlebest]
+    globalbest = [rd.uniform(-np.pi / 2, np.pi / 2) for _ in range(dimension)]
+    globalbestValue = loss(*globalbest)
+
+    # PSO 메인 루프
+    error = float('inf')
+    count = 0
+    while error > targetError:
+        # 각 파티클 마다
+        for i in range(population):
+            # 속도 업데이트
+            w = 0.4
+            c1 = 0.8
+            r1 = rd.uniform(0, 1)
+            c2 = 0.8
+            r2 = rd.uniform(0, 1)
+            particleV[i] = [w * vi + c1 * r1 * (pb - si) + c2 * r2 * (gb - si)
+                            for si, vi, pb, gb in zip(particleS[i], particleV[i], particlebest[i], globalbest)]
+
+            # 위치 업데이트
+            particleS[i] = [si + vi for si, vi in zip(particleS[i], particleV[i])]
+
+            # 최고점 업데이트
+            loss_now = loss(*particleS[i])
+            if loss_now < particlebestValue[i]:
+                particlebest[i] = particleS[i]
+                particlebestValue[i] = loss_now
+                if loss_now < globalbestValue:
+                    globalbest = particleS[i]
+                    globalbestValue = loss_now
+
+        # 평가
+        count += 1
+        error = globalbestValue
+        print("No %d best loss: %.8f" % (count, error))
+
+    return globalbest
+
+
 if __name__ == "__main__":
     plt.figure(1)
     plt.axes().set_aspect('equal')
 
     plt.plot(*jointLocation(0, 0, 0))
+
+    T = np.array([[0, -1, 0, 1],
+                  [1, 0, 0, 3],
+                  [0, 0, 1, 0],
+                  [0, 0, 0, 1]])
+    result = IK_PSO(T)
+    plt.plot(*jointLocation(*result))
 
     plt.title("Manipulator pose")
     plt.xlabel("x")
