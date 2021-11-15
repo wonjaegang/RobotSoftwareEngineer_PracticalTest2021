@@ -42,8 +42,17 @@ def T23(motor3):
     return DH_parameter(motor3, 0, sum(r[2]), 0)
 
 
-# 뉴턴 - 오일러 동역학
+# 뉴턴 - 오일러 동역학 - 벡터 계산
 def NE_method():
+    # 관절에 걸리는 토크를 구하기 전, 각 링크의 각속도, 질량중심 선속도를 계산한다(0 -> N).
+    # w1 = motor1
+    # w2 = motor1 + motor2
+    # w3 = motor1 + motor2 + motor3
+    # Vc1 = motor1 * r11
+    # Vc2 = Vc1 + motor2 * r21
+    # Vc3 = Vc2 + motor3 * r31
+    # 그 후, 관절 토크를 계산한다(N -> 0).
+    # Torque3 = r31 * ....
     return 0
 
 
